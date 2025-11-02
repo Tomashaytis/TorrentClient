@@ -1,0 +1,128 @@
+﻿d
+  8:announce
+    35:http://tracker.example.com:8080/announce
+
+  13:announce-list
+    l
+      l
+        35:http://tracker.example.com:8080/announce
+        35:http://backup.tracker.com:6969/announce
+      e
+      l
+        30:udp://tracker.opentrackr.org:1337
+      e
+    e
+
+  7:comment
+    24:Это тестовый комментарий
+
+  10:created by
+    15:MyTorrentClient 1.0
+
+  13:creation date
+    i1577836800e
+
+  8:encoding
+    5:UTF-8
+
+  6:length
+    i1048576e
+
+  4:name
+    15:test_file.txt
+
+  5:files
+    l
+      d
+        6:length
+          i524288e
+        4:path
+          l
+            8:file1.txt
+          e
+        e
+      d
+        6:length
+          i262144e
+        4:path
+          l
+            10:folder1
+            8:file2.txt
+          e
+        e
+      d
+        6:length
+          i262144e
+        4:path
+          l
+            10:folder2
+            8:subfolder
+            8:file3.txt
+          e
+        e
+    e
+
+  4:info
+    d
+      6:length
+        i1048576e
+      
+      4:name
+        15:test_file.txt
+      
+      12:piece length
+        i16384e
+      
+      6:pieces
+        60:aaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbcccccccccccccccccccc
+      
+      10:private
+        i1e
+      
+      8:file-duration
+        l
+          i30000e
+          i25000e
+        e
+      
+      11:file-media
+        l
+          l
+            2:av
+            d
+              6:codecs
+                l
+                  4:mp4a
+                  4:avc1
+                e
+            e
+          e
+        e
+    e
+
+  9:httpseeds
+    l
+      32:https://seed1.example.com/file.zip
+      32:https://seed2.example.com/file.zip
+    e
+
+  8:url-list
+    l
+      28:https://example.com/file.zip
+    e
+
+  12:nodes
+    l
+      l
+        9:127.0.0.1
+        i6881e
+      e
+      l
+        14:192.168.1.100
+        i6882e
+      e
+    e
+
+  8:metadata
+    i1234567890e
+e
