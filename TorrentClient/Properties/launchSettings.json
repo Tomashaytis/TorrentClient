@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TorrentClient": {
+      "commandName": "Project",
+      "commandLineArgs": "book.torrent"
+    }
+  }
+}

@@ -8,13 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\test.torrent" />
+    <ProjectReference Include="..\TorrentClient.Domain\TorrentClient.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\test.torrent">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
+    <Content Include="Resources\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
