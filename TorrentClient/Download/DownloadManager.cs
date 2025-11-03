@@ -65,7 +65,6 @@ public class DownloadManager(TorrentMetadata metadata, List<IPEndPoint> peers, s
         {
             try
             {
-                // Проверяем, есть ли у пира этот кусок и разблокирован ли он
                 if (!downloader.HasPiece(pieceIndex))
                 {
                     Console.WriteLine($"[Piece {pieceIndex}] Peer {downloader.Peer} doesn't have this piece");
@@ -95,40 +94,6 @@ public class DownloadManager(TorrentMetadata metadata, List<IPEndPoint> peers, s
         }
         Console.WriteLine($"[Piece {pieceIndex}] Failed to download from all peers");
     }
-    /*private async Task DownloadPieceAsync(int pieceIndex, FileStream fileStream, bool[] downloadedPieces, List<PieceDownloader> pieceDownloaders)
-    {
-        if (downloadedPieces[pieceIndex])
-            return;
-
-        Console.WriteLine($"[Piece {pieceIndex}] Starting download...");
-
-        foreach (var downloader in pieceDownloaders[..1])
-        {
-            try
-            {
-                var pieceData = await downloader.DownloadPieceFromPeer(pieceIndex, PieceLength, TotalPieces);
-                if (pieceData != null)
-                {
-                    lock (_fileWriteLock)
-                    {
-                        long fileOffset = pieceIndex * (long)PieceLength;
-                        fileStream.Seek(fileOffset, SeekOrigin.Begin);
-                        fileStream.Write(pieceData);
-                    }
-                    downloadedPieces[pieceIndex] = true;
-
-                    UpdateProgress(pieceIndex);
-                    await Task.Delay(100);
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Piece {pieceIndex}] Failed from {downloader.Peer}: {ex.Message}");
-            }
-        }
-        Console.WriteLine($"[Piece {pieceIndex}] Failed to download from all peers");
-    }*/
 
     private void UpdateProgress(int pieceIndex)
     {
