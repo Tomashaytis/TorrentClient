@@ -1,4 +1,6 @@
-﻿namespace TorrentClient.Domain.Parser;
+﻿using System.Text;
+
+namespace TorrentClient.Domain.Parser;
 
 public class BencodeParser(Stream stream)
 {
@@ -30,65 +32,44 @@ public class BencodeParser(Stream stream)
         };
     }
 
-    public string ParseString(char startSymbol)
+    public byte[] ParseString(char startSymbol)
     {
         var bytesCountStr = "" + startSymbol;
-
-        char curSymbol;
+        char c;
         do
         {
-            curSymbol = NextSymbol();
+            c = NextSymbol();
+            if (c != ':' && (c < '0' || c > '9'))
+                throw new FormatException($"Invalid symbol in byte count value: {c}");
+            if (c != ':') bytesCountStr += c;
+        } while (c != ':');
 
-            if (!"0123456789:".Contains(curSymbol)) {
-                throw new FormatException($"Invalid symbol in byte count value: {curSymbol}");
-            }
-
-            if (curSymbol != ':')
-                bytesCountStr += curSymbol;
-
-        } while (curSymbol != ':');
-        
-        int bytesCount = int.Parse(bytesCountStr);
-
-        var str = "";
-
-        for (int i = 0; i < bytesCount; i++) 
+        int n = int.Parse(bytesCountStr);
+        var buf = new byte[n];
+        int read = 0;
+        while (read < n)
         {
-            str += NextSymbol();
+            int r = Stream.Read(buf, read, n - read);
+            if (r <= 0) throw new EndOfStreamException();
+            read += r;
         }
-
-        return str;
+        return buf;
     }
-
     public long ParseInteger()
     {
-        var integerStr = "";
-
+        var sb = new StringBuilder();
         bool first = true;
-        char curSymbol;
-        do
+        char c;
+        while ((c = NextSymbol()) != 'e')
         {
-            var curByte = NextSymbol();
-            curSymbol = curByte;
-
-            if (!"012345678e9".Contains(curSymbol))
-            {
-                if (curSymbol != '-' || !first)
-                    throw new FormatException($"Invalid digit: {curSymbol}");
-            }
-
-            if (curSymbol != 'e')
-                integerStr += curSymbol;
-
-        } while (curSymbol != 'e');
-
-        if (integerStr.Length == 0)
-            throw new FormatException($"Integer value not found");
-
-        long integer = long.Parse(integerStr);
-
-        return integer;
-
+            if (first && c == '-') { sb.Append(c); first = false; continue; }
+            if (c < '0' || c > '9')
+                throw new FormatException($"Invalid digit: {c}");
+            sb.Append(c);
+            first = false;
+        }
+        if (sb.Length == 0) throw new FormatException("Integer value not found");
+        return long.Parse(sb.ToString());
     }
 
     public List<object> ParseList()
@@ -117,7 +98,9 @@ public class BencodeParser(Stream stream)
             curSymbol = NextSymbol();
 
             if (curSymbol != 'e') {
-                var key = Parse(curSymbol);
+                var keyBytes = (byte[])ParseString(curSymbol);
+                var key = Encoding.ASCII.GetString(keyBytes);
+
                 if (key is string stringKey)
                 {
                     if (stringKey == "")

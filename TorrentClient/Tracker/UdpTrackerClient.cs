@@ -57,11 +57,11 @@ public class UdpTrackerClient : ITrackerClient
 
         var request = new byte[16];
         // Protocol ID (0x41727101980)
-        BitConverter.GetBytes(0x41727101980L).CopyTo(request, 0);
+        WriteInt64BE(request.AsSpan(0, 8), 0x0000041727101980L);
         // Action (0 = connect)
-        BitConverter.GetBytes(0).CopyTo(request, 8);
+        WriteInt32BE(request.AsSpan(8, 4), 0);
         var transactionId = GenerateTransactionId();
-        BitConverter.GetBytes(transactionId).CopyTo(request, 12);
+        WriteInt32BE(request.AsSpan(12, 4), transactionId);
 
         Console.WriteLine($"[UDP] Sending connect request, transaction: {transactionId}");
 
@@ -83,8 +83,9 @@ public class UdpTrackerClient : ITrackerClient
         if (buffer.Length < 16)
             throw new InvalidOperationException("Invalid connect response length");
 
-        var action = BitConverter.ToInt32(buffer, 0);
-        var receivedTransactionId = BitConverter.ToInt32(buffer, 4);
+
+        var action = ReadInt32BE(buffer.AsSpan(0, 4));
+        var receivedTransactionId = ReadInt32BE(buffer.AsSpan(4, 4));
 
         if (receivedTransactionId != transactionId)
             throw new InvalidOperationException($"Transaction ID mismatch: expected {transactionId}, got {receivedTransactionId}");
@@ -98,7 +99,7 @@ public class UdpTrackerClient : ITrackerClient
         if (action != 0)
             throw new InvalidOperationException($"Unexpected action in connect response: {action}");
 
-        return BitConverter.ToInt64(buffer, 8);
+        return ReadInt64BE(buffer.AsSpan(8, 8));
     }
 
     private async Task<List<IPEndPoint>> AnnounceToTracker(
@@ -110,32 +111,32 @@ public class UdpTrackerClient : ITrackerClient
 
         var request = new byte[98];
         // connection_id
-        BitConverter.GetBytes(connectionId).CopyTo(request, 0);
+        WriteInt64BE(request.AsSpan(0, 8), connectionId);
         // action (1 = announce)
-        BitConverter.GetBytes(1).CopyTo(request, 8);
+        WriteInt32BE(request.AsSpan(8, 4), 1);
         var transactionId = GenerateTransactionId();
         // transaction_id
-        BitConverter.GetBytes(transactionId).CopyTo(request, 12);
+        WriteInt32BE(request.AsSpan(12, 4), transactionId);
         // info_hash (20 bytes)
         infoHash.CopyTo(request, 16);
         // peer_id (20 bytes)
         Encoding.ASCII.GetBytes(peerId).CopyTo(request, 36);
         // downloaded
-        BitConverter.GetBytes(downloaded).CopyTo(request, 56);
+        WriteInt64BE(request.AsSpan(56, 8), downloaded);
         // left
-        BitConverter.GetBytes(left).CopyTo(request, 64);
+        WriteInt64BE(request.AsSpan(64, 8), left);
         // uploaded
-        BitConverter.GetBytes(uploaded).CopyTo(request, 72);
+        WriteInt64BE(request.AsSpan(72, 8), uploaded);
         // event (0 = none)
-        BitConverter.GetBytes(0).CopyTo(request, 80);
+        WriteInt32BE(request.AsSpan(80, 4), 0);
         // IP address (0 = default)
-        BitConverter.GetBytes(0).CopyTo(request, 84);
+        WriteInt32BE(request.AsSpan(84, 4), 0);
         // key
-        BitConverter.GetBytes(GenerateTransactionId()).CopyTo(request, 88);
+        WriteInt32BE(request.AsSpan(88, 4), GenerateTransactionId());
         // num_want (-1 = default)
-        BitConverter.GetBytes(-1).CopyTo(request, 92);
+        WriteInt32BE(request.AsSpan(92, 4), -1);
         // port
-        BitConverter.GetBytes((ushort)port).CopyTo(request, 96);
+        WriteInt32BE(request.AsSpan(96, 4), (ushort)port);
 
         Console.WriteLine($"[UDP] Sending announce request, transaction: {transactionId}");
 
@@ -219,5 +220,32 @@ public class UdpTrackerClient : ITrackerClient
     private static int GenerateTransactionId()
     {
         return new Random().Next(1, int.MaxValue);
+    }
+
+    private static void WriteInt32BE(Span<byte> dst, int value)
+    {
+        dst[0] = (byte)((value >> 24) & 0xFF);
+        dst[1] = (byte)((value >> 16) & 0xFF);
+        dst[2] = (byte)((value >> 8) & 0xFF);
+        dst[3] = (byte)(value & 0xFF);
+    }
+    private static void WriteInt64BE(Span<byte> dst, long value)
+    {
+        for (int i = 7; i >= 0; i--) { dst[7 - i] = (byte)((value >> (i * 8)) & 0xFF); }
+    }
+    private static void WriteUInt16BE(Span<byte> dst, ushort value)
+    {
+        dst[0] = (byte)((value >> 8) & 0xFF);
+        dst[1] = (byte)(value & 0xFF);
+    }
+    private static int ReadInt32BE(ReadOnlySpan<byte> src)
+    {
+        return (src[0] << 24) | (src[1] << 16) | (src[2] << 8) | src[3];
+    }
+    private static long ReadInt64BE(ReadOnlySpan<byte> src)
+    {
+        long v = 0;
+        for (int i = 0; i < 8; i++) v = (v << 8) | src[i];
+        return v;
     }
 }

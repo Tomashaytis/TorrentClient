@@ -44,12 +44,15 @@ public class HttpTrackerClient : ITrackerClient
         var bytes = await resp.Content.ReadAsByteArrayAsync();
 
         using var ms = new MemoryStream(bytes);
+
         var parser = new BencodeParser(ms);
         var root = (Dictionary<string, object>)parser.Parse();
 
-       if (root.TryGetValue("failure reason", out object? value))
+        if (root.TryGetValue("failure reason", out object? value))
         {
-            var failure = (value is string) ? Encoding.UTF8.GetString((byte[])value) : value;
+            string failure =
+                value is byte[] b ? Encoding.UTF8.GetString(b) :
+                value?.ToString() ?? "Unknown failure";
             throw new InvalidOperationException($"Tracker failure: {failure}");
         }
 
@@ -84,7 +87,7 @@ public class HttpTrackerClient : ITrackerClient
                     try
                     {
                         var ipBytes = (byte[])peerDict["ip"];
-                        var ipStr = Encoding.UTF8.GetString(ipBytes);
+                        var ipStr = Encoding.ASCII.GetString(ipBytes);
                         var peerPort = (long)peerDict["port"];
 
                         if (IPAddress.TryParse(ipStr, out IPAddress? ip))

@@ -45,7 +45,12 @@ public class BencodeEncoder
                 }
                 WriteAscii(s, "e");
                 break;
-
+            case byte[] raw:
+                // bencode string = "<len>:<bytes>"
+                WriteAscii(s, raw.Length.ToString());
+                s.WriteByte((byte)':');
+                s.Write(raw, 0, raw.Length);
+                break;
             default:
                 throw new NotSupportedException($"Unsupported bencode type: {value.GetType()}");
         }

@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+using System.Text;
 using TorrentClient.Domain.Parser;
 
 namespace TorrentClient.Domain.Core;
@@ -13,6 +14,9 @@ public class TorrentMetadata
     public string? Comment { get; init; }
     public string? CreatedBy { get; init; }
     public required Dictionary<string, object> Info { get; init; }
+
+    static string Ascii(object o) => Encoding.ASCII.GetString((byte[])o);
+    static string Utf8(object o) => Encoding.UTF8.GetString((byte[])o);
 
     public static async Task<TorrentMetadata> LoadAsync(string path)
     {
@@ -33,32 +37,37 @@ public class TorrentMetadata
     {
         using var ms = new MemoryStream(data, writable: false);
         var parser = new BencodeParser(ms);
-        var root = (Dictionary<string, object>)parser.Parse();      
 
-        string announce = GetString(root, "announce");
-        var announceList = (List<object>)root["announce-list"];
+        var root = (Dictionary<string, object>)parser.Parse();
+
+        string announce = Ascii(root["announce"]);
+        string comment = root.TryGetValue("comment", out var cmt) ? Utf8(cmt) : "";
+        string createdBy = root.TryGetValue("created by", out var cb) ? Utf8(cb) : "";
+
+
 
         var resAnnounceList = new List<string>();
-        foreach (var item in announceList)
+        if (root.TryGetValue("announce-list", out var alObj) && alObj is List<object> tiers)
         {
-            try
+            foreach (var tierObj in tiers)
             {
-                resAnnounceList.Add((string)(((List<object>)item)[0]));
-            }
-            catch (Exception ex)
-            {
+                if (tierObj is List<object> tier && tier.Count > 0 && tier[0] is byte[] urlBytes)
+                    resAnnounceList.Add(Encoding.ASCII.GetString(urlBytes));
             }
         }
-        resAnnounceList.Add(announce);
+        else
+        {
+            resAnnounceList.Add(announce);
+        }
 
-        string comment = GetString(root, "comment");
-        string createdBy = GetString(root, "created by");
+
 
         if (!root.TryGetValue("info", out var infoObj))
             throw new FormatException("Missing 'info' dictionary.");
-        var info = (Dictionary<string, object>)infoObj;
 
-        string name = GetString(info, "name");
+        var info = (Dictionary<string, object>)infoObj;
+        string name = Utf8(info["name"]);
+
 
         long length = GetTotalLength(info);
 
