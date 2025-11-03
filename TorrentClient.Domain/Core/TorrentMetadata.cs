@@ -6,6 +6,7 @@ namespace TorrentClient.Domain.Core;
 public class TorrentMetadata
 {
     public required string Announce { get; init; }
+    public required List<string> AnnounceList { get; init; }
     public required string Name { get; init; }
     public required long Length { get; init; }
     public required byte[] InfoHash { get; init; }
@@ -34,7 +35,22 @@ public class TorrentMetadata
         var parser = new BencodeParser(ms);
         var root = (Dictionary<string, object>)parser.Parse();      
 
-        string announce = GetString(root, "announce");                
+        string announce = GetString(root, "announce");
+        var announceList = (List<object>)root["announce-list"];
+
+        var resAnnounceList = new List<string>();
+        foreach (var item in announceList)
+        {
+            try
+            {
+                resAnnounceList.Add((string)(((List<object>)item)[0]));
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+        resAnnounceList.Add(announce);
+
         string comment = GetString(root, "comment");
         string createdBy = GetString(root, "created by");
 
@@ -52,6 +68,7 @@ public class TorrentMetadata
         return new TorrentMetadata
         {
             Announce = announce,
+            AnnounceList = resAnnounceList,
             Comment = comment,
             CreatedBy = createdBy,
             Name = name,
