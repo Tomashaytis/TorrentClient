@@ -2,7 +2,7 @@
   "profiles": {
     "TorrentClient": {
       "commandName": "Project",
-      "commandLineArgs": "ubuntu.torrent"
+      "commandLineArgs": "ubuntu1.torrent"
     }
   }
 }

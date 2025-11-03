@@ -10,6 +10,8 @@ public class TorrentMetadata
     public required List<string> AnnounceList { get; init; }
     public required string Name { get; init; }
     public required long Length { get; init; }
+    public required long PieceLength { get; init; }
+    public required byte[] Pieces { get; init; }
     public required byte[] InfoHash { get; init; }
     public string? Comment { get; init; }
     public string? CreatedBy { get; init; }
@@ -40,10 +42,11 @@ public class TorrentMetadata
 
         var root = (Dictionary<string, object>)parser.Parse();
 
-        string announce = Ascii(root["announce"]);
-        string comment = root.TryGetValue("comment", out var cmt) ? Utf8(cmt) : "";
-        string createdBy = root.TryGetValue("created by", out var cb) ? Utf8(cb) : "";
-
+        var announce = Ascii(root["announce"]);
+        var comment = root.TryGetValue("comment", out var cmt) ? Utf8(cmt) : "";
+        var createdBy = root.TryGetValue("created by", out var cb) ? Utf8(cb) : "";
+        var pieceLength = (long)((Dictionary<string, object>)root["info"])["piece length"];
+        var pieces = (byte[])((Dictionary<string, object>)root["info"])["pieces"];
 
 
         var resAnnounceList = new List<string>();
@@ -56,11 +59,7 @@ public class TorrentMetadata
             }
         }
         else
-        {
             resAnnounceList.Add(announce);
-        }
-
-
 
         if (!root.TryGetValue("info", out var infoObj))
             throw new FormatException("Missing 'info' dictionary.");
@@ -83,6 +82,8 @@ public class TorrentMetadata
             Name = name,
             Length = length,
             InfoHash = infoHash,
+            PieceLength = pieceLength,
+            Pieces = pieces,
             Info = info
         };
     }
