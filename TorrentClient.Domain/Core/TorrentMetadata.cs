@@ -84,7 +84,7 @@ public class TorrentMetadata
             InfoHash = infoHash,
             PieceLength = pieceLength,
             Pieces = pieces,
-            Info = info
+            Info = info,
         };
     }
 

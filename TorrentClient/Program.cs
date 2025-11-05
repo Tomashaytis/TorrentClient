@@ -143,7 +143,7 @@ public class Program
                     foreach (var peer in peers)
                         Console.WriteLine($"  - {peer}");
 
-                    Console.WriteLine("\n Async HTTP connection established successfully.");
+                    Console.WriteLine("\n[Info]: Async HTTP connection established successfully.");
 
                     var pieceDownloader = new PeerChecker(meta.InfoHash, peerId);
 
@@ -165,6 +165,15 @@ public class Program
                     foreach (var peer in successfulPeers)
                     {
                         Console.WriteLine($"  + {peer}");
+                    }
+                    Console.WriteLine();
+
+                    Console.Write("Continue (y/n):");
+                    var key = Console.ReadKey();
+                    if (key.KeyChar is 'n' or 'N')
+                    {
+                        Console.WriteLine();
+                        continue;
                     }
                     Console.WriteLine();
 
