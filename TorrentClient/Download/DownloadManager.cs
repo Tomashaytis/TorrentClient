@@ -41,12 +41,13 @@ public class DownloadManager(TorrentMetadata metadata, List<IPEndPoint> peers, s
         for (int pieceIndex = 0; pieceIndex < TotalPieces; pieceIndex++)
         {
             int currentPiece = pieceIndex;
-            tasks.Add(DownloadPieceAsync(currentPiece, fileStream, downloadedPieces, pieceDownloaders));
+            tasks.Add(DownloadPieceAsync(currentPiece, fileStream, downloadedPieces, pieceDownloaders[..1]));
 
             if (tasks.Count >= maxTasksCount)
             {
                 await Task.WhenAny(tasks);
                 tasks.RemoveAll(t => t.IsCompleted);
+
             }
         }
 
@@ -152,3 +153,5 @@ public class DownloadManager(TorrentMetadata metadata, List<IPEndPoint> peers, s
         return PieceLength;
     }
 }
+
+public record PieceTask(int pieceIndex, int pieceLength, PieceDownloader pieceDownloader, bool downloaded = true);

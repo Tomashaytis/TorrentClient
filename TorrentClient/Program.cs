@@ -168,17 +168,18 @@ public class Program
                     }
                     Console.WriteLine();
 
-                    Console.Write("Continue (y/n):");
-                    var key = Console.ReadKey();
-                    if (key.KeyChar is 'n' or 'N')
-                    {
-                        Console.WriteLine();
-                        continue;
-                    }
-                    Console.WriteLine();
 
                     if (successfulPeers.Count != 0)
                     {
+                        Console.Write("Continue (y/n):");
+                        var key = Console.ReadKey();
+                        if (key.KeyChar is 'n' or 'N')
+                        {
+                            Console.WriteLine();
+                            continue;
+                        }
+                        Console.WriteLine();
+                        
                         Console.WriteLine($"Starting download with {successfulPeers.Count} peers...");
 
                         var downloadManager = new DownloadManager(meta, successfulPeers, peerId);
