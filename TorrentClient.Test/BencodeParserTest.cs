@@ -15,8 +15,8 @@ public class TestBencodeParser
         var parser = new BencodeParser(stream);
         var actual = parser.Parse();
 
-        Assert.IsType<string>(actual);
-        Assert.Equal(expected, actual);
+        Assert.IsType<byte[]>(actual);
+        Assert.Equal(expected, Encoding.UTF8.GetString((byte[])actual));
     }
 
     [Theory]
@@ -113,8 +113,8 @@ public class TestBencodeParser
                 break;
 
             case string expectedString:
-                var actualString = Assert.IsType<string>(actual);
-                Assert.Equal(expectedString, actualString);
+                Assert.IsType<byte[]> (actual);
+                Assert.Equal(expectedString, Encoding.UTF8.GetString((byte[])actual));
                 break;
 
             default:
